@@ -31,7 +31,39 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'middleware.location.LocationMiddleware',
 ]
+
+# Session configuration
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_AGE = 1209600  # 2 weeks
+SESSION_SAVE_EVERY_REQUEST = True
+
+# Cache configuration (for exchange rates and location data)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'cache_table',
+    }
+}
+
+# Currency and Location Settings
+DEFAULT_CURRENCY = 'USD'
+SUPPORTED_CURRENCIES = ['USD', 'EUR', 'GBP']
+
+# Exchange Rate API Configuration
+EXCHANGE_RATE_API_KEY = '4c3b45e6bf20af6ea521c7d0'  
+
+# Location Detection Settings
+LOCATION_DETECTION_ENABLED = True
+LOCATION_CACHE_TIMEOUT = 86400  # 24 hours
+
+# Internationalization
+LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'UTC'
+USE_I18N = True
+USE_L10N = True
+USE_TZ = True
 
 ROOT_URLCONF = 'amazon_clone.urls'
 
