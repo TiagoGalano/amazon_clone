@@ -12,6 +12,59 @@
         .product-card:hover { transform: translateY(-5px); }
         .footer { background-color: #232f3e; }
         .cart-badge { background-color: #ff9900; }
+        
+        /* Location and Currency Selector Styles */
+        .location-selector {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #fff;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .location-selector:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .location-dropdown {
+            min-width: 280px;
+            background: #fff;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .location-option {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .location-option:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .location-option:last-child {
+            border-bottom: none;
+        }
+        
+        .location-flag {
+            width: 24px;
+            height: 18px;
+            border-radius: 2px;
+            margin-right: 12px;
+        }
+        
+        .currency-info {
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
         /* Product hover effects */
         .product-card {
             transition: all 0.3s ease;
@@ -137,6 +190,56 @@
             <a class="navbar-brand" href="{% url 'home' %}">
                 <i class="fas fa-shopping-cart"></i> Amazon Clone
             </a>
+            
+            <!-- Location/Currency Selector - NOVO -->
+            <div class="dropdown me-3">
+                <div class="location-selector dropdown-toggle" id="locationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-map-marker-alt me-2"></i>
+                    <span id="current-location">
+                        {% if user_location %}
+                            {{ user_location.country_name }}
+                        {% else %}
+                            Select Location
+                        {% endif %}
+                    </span>
+                    <span class="ms-2 currency-info">
+                        {% if user_currency %}
+                            ({{ user_currency }})
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="dropdown-menu location-dropdown" aria-labelledby="locationDropdown">
+                    <div class="location-option" onclick="changeLocation('US', 'USD', 'United States')">
+                        <div class="d-flex align-items-center">
+                            <div class="location-flag bg-primary me-3" style="background: linear-gradient(to bottom, #ff0000 33%, #ffffff 33%, #ffffff 66%, #0000ff 66%) !important;"></div>
+                            <div>
+                                <div class="fw-bold">United States</div>
+                                <div class="currency-info">US Dollar (USD)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="location-option" onclick="changeLocation('GB', 'GBP', 'United Kingdom')">
+                        <div class="d-flex align-items-center">
+                            <div class="location-flag bg-primary me-3" style="background: linear-gradient(45deg, #012169 25%, #ffffff 25%, #ffffff 50%, #c8102e 50%, #c8102e 75%, #ffffff 75%) !important;"></div>
+                            <div>
+                                <div class="fw-bold">United Kingdom</div>
+                                <div class="currency-info">British Pound (GBP)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="location-option" onclick="changeLocation('EU', 'EUR', 'European Union')">
+                        <div class="d-flex align-items-center">
+                            <div class="location-flag bg-primary me-3" style="background: linear-gradient(to bottom, #003399 50%, #ffcc00 50%) !important;"></div>
+                            <div>
+                                <div class="fw-bold">European Union</div>
+                                <div class="currency-info">Euro (EUR)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -266,6 +369,42 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
     <script>
+        // Location and Currency Change Function - NOVO
+        function changeLocation(countryCode, currency, countryName) {
+            // Send AJAX request to change location
+            $.ajax({
+                url: '{% url "change_location" %}',
+                type: 'POST',
+                data: {
+                    'country_code': countryCode,
+                    'currency': currency,
+                    'country_name': countryName,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Update the display
+                        $('#current-location').text(countryName);
+                        $('.currency-info').text('(' + currency + ')');
+                        
+                        // Show success message
+                        $('<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+                          'Location changed to ' + countryName + ' (' + currency + ')' +
+                          '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                          '</div>').prependTo('.container').delay(2000).fadeOut();
+                          
+                        // Reload page to update prices
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    }
+                },
+                error: function() {
+                    alert('Error changing location. Please try again.');
+                }
+            });
+        }
+        
         // Toggle shipping address fields
         $(document).ready(function() {
             $('#id_same_as_billing').change(function() {
