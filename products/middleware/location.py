@@ -1,8 +1,7 @@
-# middleware/location.py - Location detection and currency middleware
+# middleware/location.py - Location detection middleware
 import requests
 from django.utils.deprecation import MiddlewareMixin
 from django.core.cache import cache
-from utils.currency import get_location_currency, set_user_currency
 import logging
 
 logger = logging.getLogger(__name__)
@@ -37,8 +36,8 @@ class LocationMiddleware(MiddlewareMixin):
                 
                 # Set currency based on location if not already set
                 if 'currency' not in request.session:
-                    currency = get_location_currency(country_code)
-                    set_user_currency(request, currency)
+                    currency = self.get_location_currency(country_code)
+                    request.session['currency'] = currency
                 
                 logger.info(f"Location detected: {country_name} ({country_code})")
         else:
@@ -106,3 +105,30 @@ class LocationMiddleware(MiddlewareMixin):
                 return None
         
         return location_data
+    
+    def get_location_currency(self, country_code):
+        """Get default currency based on country code"""
+        currency_map = {
+            'US': 'USD',
+            'UK': 'GBP',
+            'GB': 'GBP',
+            'DE': 'EUR',
+            'FR': 'EUR',
+            'IT': 'EUR',
+            'ES': 'EUR',
+            'NL': 'EUR',
+            'AT': 'EUR',
+            'BE': 'EUR',
+            'FI': 'EUR',
+            'IE': 'EUR',
+            'LU': 'EUR',
+            'PT': 'EUR',
+            'SI': 'EUR',
+            'SK': 'EUR',
+            'EE': 'EUR',
+            'LV': 'EUR',
+            'LT': 'EUR',
+            'MT': 'EUR',
+            'CY': 'EUR',
+        }
+        return currency_map.get(country_code.upper(), 'USD')
