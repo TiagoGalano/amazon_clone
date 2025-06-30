@@ -373,7 +373,7 @@
         function changeLocation(countryCode, currency, countryName) {
             // Send AJAX request to change location
             $.ajax({
-                url: '{% url "change_location" %}',
+                url: '{% url "products:change_location" %}',
                 type: 'POST',
                 data: {
                     'country_code': countryCode,

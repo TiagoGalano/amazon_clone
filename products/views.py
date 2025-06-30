@@ -270,9 +270,17 @@ def change_location(request):
     """AJAX endpoint to change user location and currency"""
     if request.method == 'POST':
         try:
-            data = json.loads(request.body)
+            # Handle both JSON and form data
+            if request.content_type == 'application/json':
+                data = json.loads(request.body)
+            else:
+                data = request.POST
+            
             country_code = data.get('country_code', '').upper()
             country_name = data.get('country_name', '')
+            
+            # Debug logging
+            print(f"Received data: country_code={country_code}, country_name={country_name}")
             
             if country_code and country_name:
                 request.session['country_code'] = country_code
@@ -281,7 +289,11 @@ def change_location(request):
                 # Update currency based on location
                 currency_map = {
                     'US': 'USD', 'GB': 'GBP', 'UK': 'GBP',
-                    'DE': 'EUR', 'FR': 'EUR', 'IT': 'EUR', 'ES': 'EUR'
+                    'DE': 'EUR', 'FR': 'EUR', 'IT': 'EUR', 'ES': 'EUR',
+                    'PT': 'EUR', 'NL': 'EUR', 'AT': 'EUR', 'BE': 'EUR',
+                    'FI': 'EUR', 'IE': 'EUR', 'LU': 'EUR', 'SI': 'EUR',
+                    'SK': 'EUR', 'EE': 'EUR', 'LV': 'EUR', 'LT': 'EUR',
+                    'MT': 'EUR', 'CY': 'EUR'
                 }
                 currency = currency_map.get(country_code, 'USD')
                 set_user_currency(request, currency)
@@ -296,18 +308,23 @@ def change_location(request):
             else:
                 return JsonResponse({
                     'success': False,
-                    'error': 'Invalid location data'
+                    'error': 'Invalid location data - missing country_code or country_name'
                 }, status=400)
                 
         except json.JSONDecodeError:
             return JsonResponse({
                 'success': False,
-                'error': 'Invalid JSON'
+                'error': 'Invalid JSON data'
             }, status=400)
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': f'Server error: {str(e)}'
+            }, status=500)
     
     return JsonResponse({
         'success': False,
-        'error': 'Invalid request method'
+        'error': 'Only POST method allowed'
     }, status=405)
 
 def get_product_price(request, product_id):
